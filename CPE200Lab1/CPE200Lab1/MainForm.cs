@@ -18,11 +18,11 @@ namespace CPE200Lab1
         private bool isAfterEqual;
         private string firstOperand;
         private string operate;
-        //private CalculatorEngine engine;
+        private CalculatorEngine engine;
         private bool symbolcheck = false;
         private string symbol;
         private string remember;
-        // private string num;
+        string secondOperand;
 
         private void resetAll()
         {
@@ -149,7 +149,7 @@ namespace CPE200Lab1
                             case "+":
                             case "-":
                             case "X":
-                            case "?":
+                            case "/":
                                 firstOperand = lblDisplay.Text;
                                 isAfterOperater = true;
                                 break;
@@ -189,13 +189,15 @@ namespace CPE200Lab1
             {
                 if (isAfterEqual)
                 {
+                    lblDisplay.Text = engine.calculate(operate, lblDisplay.Text , secondOperand);
                     return;
                 }
+                else { secondOperand = lblDisplay.Text; }
                 if (lblDisplay.Text is "Error")
                 {
                     return;
                 }
-                string secondOperand = lblDisplay.Text;
+               
                 string result = engine.calculate(operate, firstOperand, secondOperand);
                 if (result is "E" || result.Length > 8)
                 {
@@ -226,8 +228,9 @@ namespace CPE200Lab1
             }
             if (!hasDot)
             {
+                
                 lblDisplay.Text += ".";
-                hasDot = true;
+                //hasDot = true;
             }
         }
 
@@ -297,40 +300,45 @@ namespace CPE200Lab1
         {
 
         }
-        private void memmory_Click(object sender, EventArgs e)
-        {
 
-            string memoryOperate = ((Button)sender).Text;
-            switch (memoryOperate)
-            {
-                case "MC":
-                    remember = "0";
-                    lblDisplay.Text = "0";
-                    label1.Text = remember;
-                    break;
-                case "MR":
-                    lblDisplay.Text = remember;
-                    break;
-                case "MS":
-                    remember = lblDisplay.Text;
-                    label1.Text = remember;
-                    break;
-                case "M+":
-                    if (remember == "0") remember = lblDisplay.Text;
-                    remember = (Convert.ToDouble(remember) + Convert.ToDouble(lblDisplay.Text)).ToString();
-                    label1.Text = remember;
-                    break;
-                case "M-":
-                    remember = (Convert.ToDouble(remember) - Convert.ToDouble(lblDisplay.Text)).ToString();
-                    label1.Text = remember;
-                    break;
-
-            }
-        }
-
-        private void label1_Click(object sender, EventArgs e)
+        private void button1_Click(object sender, EventArgs e)
         {
 
         }
+        /* private void memmory_Click(object sender, EventArgs e)
+{
+
+    string memoryOperate = ((Button)sender).Text;
+    switch (memoryOperate)
+    {
+        case "MC":
+            remember = "0";
+            lblDisplay.Text = "0";
+            label1.Text = remember;
+            break;
+        case "MR":
+            lblDisplay.Text = remember;
+            break;
+        case "MS":
+            remember = lblDisplay.Text;
+            label1.Text = remember;
+            break;
+        case "M+":
+            if (remember == "0") remember = lblDisplay.Text;
+            remember = (Convert.ToDouble(remember) + Convert.ToDouble(lblDisplay.Text)).ToString();
+            label1.Text = remember;
+            break;
+        case "M-":
+            remember = (Convert.ToDouble(remember) - Convert.ToDouble(lblDisplay.Text)).ToString();
+            label1.Text = remember;
+            break;
+
+    }
+}
+
+private void label1_Click(object sender, EventArgs e)
+{
+
+}*/
     }
 }

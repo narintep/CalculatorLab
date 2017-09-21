@@ -1,177 +1,148 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using System.Windows.Forms;
 
 namespace CPE200Lab1
 {
-    public partial class ExtendForm : Form
+    public class CalculatorEngine
     {
-        private bool isNumberPart = false;
-        private bool isContainDot = false;
-        private bool isSpaceAllowed = false;
-        private RPNCalculatorEngine engine;
-
-        public ExtendForm()
+        protected bool isNumber(string str)
         {
-            InitializeComponent();
-            engine = new RPNCalculatorEngine();
+            double retNum;
+            return Double.TryParse(str, out retNum);
         }
 
-        private bool isOperator(char ch)
+        protected bool isOperator(string str)
         {
-            switch(ch) {
-                case '+':
-                case '-':
-                case 'X':
-                case '÷':
+            switch (str)
+            {
+                case "+":
+                case "-":
+                case "X":
+                case "÷":
                     return true;
             }
             return false;
         }
 
-        private void btnNumber_Click(object sender, EventArgs e)
+        public string Process(string str)
         {
-            if (lblDisplay.Text is "Error")
+            //Split input string to multiple parts by space
+            List<string> parts = str.Split(' ').ToList<string>();
+            string result;
+            //As long as we have more than one part
+            while (parts.Count > 1)
             {
-                return;
-            }
-            if (lblDisplay.Text is "0")
-            {
-                lblDisplay.Text = "";
-            }
-            if (!isNumberPart)
-            {
-                isNumberPart = true;
-                isContainDot = false;
-            }
-            lblDisplay.Text += ((Button)sender).Text;
-            isSpaceAllowed = true;
-        }
-
-        private void btnBinaryOperator_Click(object sender, EventArgs e)
-        {
-            if (lblDisplay.Text is "Error")
-            {
-                return;
-            }
-            isNumberPart = false;
-            isContainDot = false;
-            string current = lblDisplay.Text;
-            if (current[current.Length - 1] != ' ' || isOperator(current[current.Length - 2]))
-            {
-                lblDisplay.Text += " " + ((Button)sender).Text + " ";
-                isSpaceAllowed = false;
-            }else
-            {
-                lblDisplay.Text += "" + ((Button)sender).Text + " ";
-                isSpaceAllowed = false;
-            }
-        }
-
-        private void btnBack_Click(object sender, EventArgs e)
-        {
-            if (lblDisplay.Text is "Error")
-            {
-                return;
-            }
-            // check if the last one is operator
-            string current = lblDisplay.Text;
-            if (current[current.Length - 1] is ' ' && current.Length > 2 && isOperator(current[current.Length - 2]))
-            {
-                lblDisplay.Text = current.Substring(0, current.Length - 3);
-            } else
-            {
-                lblDisplay.Text = current.Substring(0, current.Length - 1);
-            }
-            if (lblDisplay.Text is "")
-            {
-                lblDisplay.Text = "0";
-            }
-        }
-
-        private void btnClear_Click(object sender, EventArgs e)
-        {
-            lblDisplay.Text = "0";
-            isContainDot = false;
-            isNumberPart = false;
-            isSpaceAllowed = false;
-        }
-
-        private void btnEqual_Click(object sender, EventArgs e)
-        {
-            string result = engine.Process(lblDisplay.Text);
-            if (result is "E")
-            {
-                lblDisplay.Text = "Error";
-            } else
-            {
-                lblDisplay.Text = result;
-                isSpaceAllowed = true;
-                isContainDot = false;
-                isNumberPart = true;
-            }
-        }
-
-        private void btnSign_Click(object sender, EventArgs e)
-        {
-            if (lblDisplay.Text is "Error")
-            {
-                return;
-            }
-            if (isNumberPart)
-            {
-                return;
-            }
-            string current = lblDisplay.Text;
-            if (current is "0")
-            {
-                lblDisplay.Text = "-";
-            } else if (current[current.Length - 1] is '-')
-            {
-                lblDisplay.Text = current.Substring(0, current.Length - 1);
-                if (lblDisplay.Text is "")
+                //Check if the first three is ready for calcuation
+                if (!(isNumber(parts[0]) && isOperator(parts[1]) && isNumber(parts[2])))
                 {
-                    lblDisplay.Text = "0";
+                    return "E";
                 }
-            } else
-            {
-                lblDisplay.Text = current + "-";
+                else
+                {
+                    //Calculate the first three
+                    result = calculate(parts[1], parts[0], parts[2], 4);
+                    //Remove the first three
+                    parts.RemoveRange(0, 3);
+                    // Put back the result
+                    parts.Insert(0, result);
+                }
             }
-            isSpaceAllowed = false;
+            return parts[0];
+        }
+        public string unaryCalculate(string operate, string operand, int maxOutputSize = 8)
+        {
+            switch (operate)
+            {
+                case "√":
+                    {
+                        double result;
+                        string[] parts;
+                        int remainLength;
+
+                        result = Math.Sqrt(Convert.ToDouble(operand));
+                        // split between integer part and fractional part
+                        parts = result.ToString().Split('.');
+                        // if integer part length is already break max output, return error
+                        if (parts[0].Length > maxOutputSize)
+                        {
+                            return "E";
+                        }
+                        // calculate remaining space for fractional part.
+                        remainLength = maxOutputSize - parts[0].Length - 1;
+                        // trim the fractional part gracefully. =
+                        return result.ToString("N" + remainLength);
+                    }
+                case "1/x":
+                    if (operand != "0")
+                    {
+                        double result;
+                        string[] parts;
+                        int remainLength;
+
+                        result = (1.0 / Convert.ToDouble(operand));
+                        // split between integer part and fractional part
+                        parts = result.ToString().Split('.');
+                        // if integer part length is already break max output, return error
+                        if (parts[0].Length > maxOutputSize)
+                        {
+                            return "E";
+                        }
+                        // calculate remaining space for fractional part.
+                        remainLength = maxOutputSize - parts[0].Length - 1;
+                        // trim the fractional part gracefully. =
+                        return result.ToString("N" + remainLength);
+                    }
+                    break;
+            }
+            return "E";
         }
 
-        private void btnDot_Click(object sender, EventArgs e)
+        public string calculate(string operate, string firstOperand, string secondOperand, int maxOutputSize = 8)
         {
-            if (lblDisplay.Text is "Error")
+            switch (operate)
             {
-                return;
-            }
-            if(!isContainDot)
-            {
-                isContainDot = true;
-                lblDisplay.Text += ".";
-                isSpaceAllowed = false;
-            }
-        }
 
-        private void btnSpace_Click(object sender, EventArgs e)
-        {
-            if(lblDisplay.Text is "Error")
-            {
-                return;
+                case "+":
+                    return (Convert.ToDouble(firstOperand) + Convert.ToDouble(secondOperand)).ToString();
+                case "-":
+                    return (Convert.ToDouble(firstOperand) - Convert.ToDouble(secondOperand)).ToString();
+                case "X":
+                    return (Convert.ToDouble(firstOperand) * Convert.ToDouble(secondOperand)).ToString();
+                case "÷":
+
+
+                    // Not allow devide be zero
+                    if (secondOperand != "0")
+                    {
+                        double result;
+                        string[] parts;
+                        int remainLength;
+                        if (secondOperand == "1") return firstOperand;
+                        result = (Convert.ToDouble(firstOperand) / Convert.ToDouble(secondOperand));
+                        // split between integer part and fractional part
+                        parts = result.ToString().Split('.');
+                        // if integer part length is already break max output, return error
+                        if (parts[0].Length > maxOutputSize)
+                        {
+                            return "E";
+                        }
+
+                        // calculate remaining space for fractional part.
+                        remainLength = maxOutputSize - parts[0].Length + 1;
+
+                        if (result.ToString().Length <= 5) return result.ToString("G29");
+                        // trim the fractional part gracefully. =
+                        return result.ToString("N" + remainLength);
+                    }
+                    break;
+                case "%":
+                    //your code here
+                    break;
             }
-            if(isSpaceAllowed)
-            {
-                lblDisplay.Text += " ";
-                isSpaceAllowed = false;
-                isContainDot = false;
-            }
+            return "E";
         }
     }
 }
